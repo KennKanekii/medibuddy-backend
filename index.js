@@ -113,7 +113,7 @@ app.post('/api/patients', async (req, res) => {
             "symptoms" : symptomsArray,
         }
         console.log(obj);
-        const response = await fetch('http://172.27.1.201:3001/predict', {
+        const response = await fetch('https://disease-prediction-model-9pc1.onrender.com/predict', {
                   method: 'POST',
                   headers: {
                     'Content-Type': 'application/json',
