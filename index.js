@@ -3,6 +3,7 @@ const express = require('express');
 const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
 const Patient = require('./model/Patient'); 
+const Doctor = require('./model/Doctor'); 
 const dotenv = require('dotenv');
 dotenv.config();
 const cors = require('cors')
@@ -77,15 +78,18 @@ app.post('/nlp',(req,res)=>{
 
 //GET
 
+app.get('/api/doctors', (req, res) => {
+    Doctor.find()
+        .then((doctors) => res.json(doctors))
+        .catch((err) => res.status(400).json('Error: ' + err));
+});
+
 app.get('/', (req, res) => {
     res.send("Welcome to the Patient Record Management System");
 });
 
-// Example route to create a new patient
-app.post('/api/patients', async (req, res) => {
+app.post('/bookslot', async (req, res) => {
     try {
-        console.log("1");
-        console.log(req.body);
         const { name, age, gender } = req.body.userInfo;
         const symptomsArray = req.body.symptomsArray;
         // Create a new patient document
@@ -116,7 +120,41 @@ app.post('/api/patients', async (req, res) => {
 
         // Save the patient to the database
         await newPatient.save();
-        res.status(201).json(predicted_disease);
+        res.status(201).json({
+            id: newPatient._id,  // Send back the generated ID
+            predictedDisease: predicted_disease
+        });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// Example route to create a new patient
+app.post('/api/patients', async (req, res) => {
+    try {
+        console.log("1");
+        console.log(req.body);
+        const { doctorid, time, patientid } = req.body;
+        const symptomsArray = req.body.symptomsArray;
+        // Create a new patient document
+
+        const doctor = await Doctor.findOneAndUpdate(
+            {
+                _id: doctorid,
+                'slots.time': time // Find the slot with the matching time
+            },
+            {
+                $set: {
+                    'slots.$.isBooked': true,       // Update isBooked to true
+                    'slots.$.patientId': patientid  // Set patientId to the provided patient ID
+                }
+            },
+            { new: true } // Return the updated document
+        );
+    
+        if (!doctor) {
+            return res.status(404).json({ message: 'Doctor or slot not found' });
+        }
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
