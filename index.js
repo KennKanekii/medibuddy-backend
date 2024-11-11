@@ -78,9 +78,24 @@ app.post('/nlp',(req,res)=>{
 
 //GET
 
-app.get('/api/doctors', (req, res) => {
+app.post('/api/new', async (req, res) => {
+
+    const newDoctor = new Doctor({
+        name:"Adeca",
+        slots:[]
+    });
+
+    newDoctor.save()
+        .then(() => res.json('Doctor added!'))
+        .catch((err) => res.status(400).json('Error: ' + err));
+});
+
+
+app.get('/api/doctors', async (req, res) => {
+    
     Doctor.find()
-        .then((doctors) => res.json(doctors))
+        .then((doctors) => {console.log(doctors);
+        res.json(doctors)})
         .catch((err) => res.status(400).json('Error: ' + err));
 });
 
@@ -88,7 +103,7 @@ app.get('/', (req, res) => {
     res.send("Welcome to the Patient Record Management System");
 });
 
-app.post('/bookslot', async (req, res) => {
+app.post('/api/patients', async (req, res) => {
     try {
         const { name, age, gender } = req.body.userInfo;
         const symptomsArray = req.body.symptomsArray;
@@ -130,12 +145,12 @@ app.post('/bookslot', async (req, res) => {
 });
 
 // Example route to create a new patient
-app.post('/api/patients', async (req, res) => {
+app.post('/bookSlot', async (req, res) => {
     try {
         console.log("1");
         console.log(req.body);
         const { doctorid, time, patientid } = req.body;
-        const symptomsArray = req.body.symptomsArray;
+        // const symptomsArray = req.body.symptomsArray;
         // Create a new patient document
 
         const doctor = await Doctor.findOneAndUpdate(
